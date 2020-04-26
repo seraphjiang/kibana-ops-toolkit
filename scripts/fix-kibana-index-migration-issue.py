@@ -3,15 +3,16 @@ import sys
 
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch([{
-    "host": "localhost",
-    "port": "9200",
-    "use_ssl": False
-}])
+# es = Elasticsearch([{
+#     "host": "localhost",
+#     "port": "9200",
+#     "use_ssl": False
+# }])
 
 class FixKibanaIndexMigrationIssue:
-    def __init__(self):
-        self.kibana_indices_aliases = es.indices.get_alias(".kibana*")
+    def __init__(self, es):
+        self.es = es
+        self.kibana_indices_aliases = self.es.indices.get_alias(".kibana*")
 
     def find_end(self, source):
         val = -1
@@ -21,7 +22,7 @@ class FixKibanaIndexMigrationIssue:
 
 
     def restore_alias(self, kibana_index_name, last_kibana_index_name):
-        es.indices.update_aliases({
+        self.es.indices.update_aliases({
             "actions": [
                 {"add":    {"index": last_kibana_index_name, "alias": kibana_index_name}},
                 {"remove_index": {"index": kibana_index_name}}
@@ -31,7 +32,7 @@ class FixKibanaIndexMigrationIssue:
 
 
     def get_kibana_indices_and_aliases(self):
-        return es.indices.get_alias(".kibana*")
+        return self.es.indices.get_alias(".kibana*")
 
 
     def scan_classify(self):
@@ -82,9 +83,33 @@ def main(argv):
     parser.add_argument(
         "--action", help="action to .kibana* index. e.g. inspect, fix", default="inspect")
 
-    args = parser.parse_args()
+    parser.add_argument(
+        "--host", help="elasticsearch host", default="localhost")
+    parser.add_argument(
+        "--port", help="http port", default="9200")
+    parser.add_argument(
+        "--usessl", help="use https", type=bool, default=False)
+    parser.add_argument(
+        "--user", help="user name", default="admin")             
+    parser.add_argument(
+        "--secret", help="user secret", default="admin")             
 
-    tool = FixKibanaIndexMigrationIssue()
+    args = parser.parse_args()
+    print(args)
+    esconfig = {
+        "host": args.host,
+        "port": args.port,
+        "use_ssl": args.usessl
+    }
+    
+    if (args.usessl):
+        esconfig["verify_certs"] = False
+        esconfig["http_auth"] = (args.user, args.secret)
+
+    es = Elasticsearch([esconfig])
+
+    print(esconfig)
+    tool = FixKibanaIndexMigrationIssue(es)
     if (args.action == "fix"):
         tool.fix()
     else:

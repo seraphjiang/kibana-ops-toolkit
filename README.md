@@ -12,4 +12,7 @@ python fix-kibana-index-migration-issue
 
 # run fix
 python fix-kibana-index-migration-issue --action fix
+
+# run against https://admin:admin@localhost:9200/
+python fix-kibana-index-migration-issue --usessl --action fix
 ```
