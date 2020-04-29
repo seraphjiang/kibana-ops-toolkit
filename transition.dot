@@ -1,0 +1,25 @@
+digraph kibana_finite_state_machine {
+    # rankdir=LR;
+    # ratio = auto
+    # overlap=prism
+    # overlap_scaling=0.1
+    size=auto
+    node [penwidth = 2]
+    node [shape = doublecircle, color=green]; ".kibana_1\n.kibana*" ".kibana_1\n.kibana_2\n.kibana*"
+    node [shape = circle, color=red]; ".kibana_1" ".kibana_1\n.kibana_2\n.kibana^" ".kibana_1\n.kibana_2"
+    node [shape = circle, color=black]; Start
+    node [shape = circle, color=blue, style=dashed, penwidth=4]; ".kibana_1\n.kibana^" 
+
+    Start -> ".kibana_1\n.kibana*" [ label = "Kibana first time initial" ];
+    ".kibana_1\n.kibana*"-> ".kibana_1" [ label = "Delete alias .kibana_1" ];
+    ".kibana_1" -> ".kibana_1\n.kibana^" [label = "Hit UI build bad .kibana"];
+    ".kibana_1\n.kibana^" -> ".kibana_1\n.kibana*" [label = "SOP rebuild alias\ndelete kibana" color=green]
+    ".kibana_1" -> ".kibana_1" [label = "Bounce Kibana\nstuck at\ndeleting index .kibana_1 and restarting Kibana" color=red]
+    ".kibana_1" -> ".kibana_1\n.kibana*" [label = "SOP rebuild alias" color=green]
+    ".kibana_1\n.kibana^" -> ".kibana_1\n.kibana_2\n.kibana^" [ label = "Bounce Kibana\nOr\nAnother Kibana\nKibana server is not ready yet" color = red]
+    ".kibana_1\n.kibana_2\n.kibana^" -> ".kibana_1\n.kibana_2\n.kibana^" [ label = "Create Alias, but fail\nbecause .kibana_1 exists" color =red ]
+    ".kibana_1\n.kibana_2\n.kibana^" -> ".kibana_1\n.kibana_2\n.kibana*" [label="SOP rebuild alias to 1" color=green]
+    ".kibana_1\n.kibana_2\n.kibana*" -> ".kibana_1\n.kibana_2" [label="remove alias"]
+    ".kibana_1\n.kibana_2" -> ".kibana_1\n.kibana_2\n.kibana^" [label="Hit UI"]
+    ".kibana_1\n.kibana_2\n.kibana^" -> ".kibana_1\n.kibana_2\n.kibana^" [label="Bounce kibana\nOr\nAnother Kibana\nKibana server is not ready yet" color = red]
+}
