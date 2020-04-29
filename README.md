@@ -16,3 +16,16 @@ python fix-kibana-index-migration-issue --action fix
 # run against https://admin:admin@localhost:9200/
 python fix-kibana-index-migration-issue --usessl --action fix
 ```
+
+
+## Use https://www.graphviz.org/ to generate state transition diagram
+
+* http://www.webgraphviz.com/
+
+* Graphviz Preview (for VSCode)
+
+* Install Graphviz on Mac OS X
+
+```
+brew install graphviz
+```
