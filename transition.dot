@@ -22,4 +22,5 @@ digraph kibana_finite_state_machine {
     ".kibana_1\n.kibana_2\n.kibana*" -> ".kibana_1\n.kibana_2" [label="remove alias"]
     ".kibana_1\n.kibana_2" -> ".kibana_1\n.kibana_2\n.kibana^" [label="Hit UI"]
     ".kibana_1\n.kibana_2\n.kibana^" -> ".kibana_1\n.kibana_2\n.kibana^" [label="Bounce kibana\nOr\nAnother Kibana\nKibana server is not ready yet" color = red]
+    ".kibana_1\n.kibana_2" -> ".kibana_1\n.kibana_2\n.kibana*" [label="SOP rebuild alias" color = green]
 }

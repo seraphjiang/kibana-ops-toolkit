@@ -30,6 +30,18 @@ class FixKibanaIndexMigrationIssue:
         })
         print(kibana_index_name, last_kibana_index_name, 'fixed')
 
+    def reindex_remove(self, kibana_index_name):
+        self.es.reindex({
+            "source": {
+                "index": kibana_index_name
+            },
+            "dest": {
+                "index": kibana_index_name + "_1"
+            }
+        })
+        print("reindex from ", kibana_index_name, ' to ', kibana_index_name + "_1")
+        self.es.indices.delete(kibana_index_name, timeout='10s')
+        print("deleted ", kibana_index_name)
 
     def get_kibana_indices_and_aliases(self):
         return self.es.indices.get_alias(".kibana*")
@@ -63,8 +75,37 @@ class FixKibanaIndexMigrationIssue:
                     else:
                         print(key, last_kibana_name, 'cannot find kibana index. ignore')
             else:
-                print(key, 'only one index, no need to fix')
-    
+                idx_info = reduce[key];
+                if (idx_info["max_kibana_version"] != idx_info[idx_info["last_kibana_name"]]):
+                    # .kibana {'max_kibana_version': 1, 'last_kibana_name': '.kibana_1', '.kibana_1': 1} only one .kbana index, will create alias
+                    print(key,reduce[key], 'only one .kbana index, will create alias')
+                #else:
+                    # print(reduce[key]["last_kibana_name"], 'only one index, no need to fix')
+
+
+    def list(self):
+        reduce = self.scan_classify()
+        for key in sorted(reduce.keys()):
+            if(len(reduce[key]) > 3):
+                last_kibana_name = reduce[key]['last_kibana_name']
+                if ('aliases' in self.kibana_indices_aliases[last_kibana_name] and self.kibana_indices_aliases[last_kibana_name]['aliases'] == {}):
+                    if(key in self.kibana_indices_aliases):
+                        print(key, last_kibana_name, 'missing alias, need to fix')
+                    else:
+                        print(key, last_kibana_name, 'cannot find kibana index. ignore')
+            else:
+                print(key)
+
+    def reindex(self):
+        reduce = self.scan_classify()
+        for key in sorted(reduce.keys()):
+            # no alias, only one bad index
+            if(len(reduce[key]) == 3 and reduce[key]["max_kibana_version"] == 0):
+                print(reduce[key])
+                print(key)
+                self.reindex_remove(reduce[key]["last_kibana_name"])
+                
+
     def fix(self):
         reduce = self.scan_classify()
 
@@ -112,6 +153,10 @@ def main(argv):
     tool = FixKibanaIndexMigrationIssue(es)
     if (args.action == "fix"):
         tool.fix()
+    elif (args.action == "list"):
+        tool.list()
+    elif (args.action == "reindex"):
+        tool.reindex()        
     else:
         tool.inspect()
 

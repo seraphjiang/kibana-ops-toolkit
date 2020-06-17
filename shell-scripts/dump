@@ -1,0 +1,14 @@
+elasticdump \
+  --input=http://production.es.com:9200/my_index \
+  --output=$ \
+  | gzip > /data/my_index.json.gz
+
+
+elasticdump \
+  --input=http://localhost:9200/ \
+  --output=kibana_1_index_mapping.json \
+  --type=mapping
+elasticdump \
+  --input=http://localhost:9200/.kibana_1 \
+  --output=kibana_1_index_data.json \
+  --type=data
